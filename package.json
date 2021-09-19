@@ -1,0 +1,24 @@
+{
+  "name": "@master.technology/desktopmenuitem",
+  "version": "0.0.2",
+  "main": "menuitem.js",
+  "bin": {
+    "desktopmenuitem": "menuitem.js"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^8.2.0",
+    "ini": "^2.0.0"
+  },
+  "keywords": [
+    "gnome",
+    "desktop",
+    "menuitem"
+  ],
+  "author": {
+    "name": "Nathanael Anderson",
+    "email": "nathan@master.technology",
+    "url": "https://master.technology"
+  },
+  "license": "MIT"
+}
