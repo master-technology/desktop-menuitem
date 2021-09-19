@@ -36,7 +36,7 @@ const program = new Command();
 // noinspection SpellCheckingInspection
 program.name("desktopmenuitem".blue).usage("[options]".red + " and/or "+"[executable file]".red).version(version);
 program.showHelpAfterError('Use --help for additional information');
-program.description('An application for creating or editing gnome .desktop files');
+program.description('An application for creating or editing .desktop files');
 program.option("--view", "View .desktop file");
 program.option("--edit", "Call your editor with the .desktop file");
 program.option("--list", "List all .desktop files" );
