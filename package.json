@@ -12,13 +12,33 @@
   },
   "keywords": [
     "gnome",
+    "freedesktop",
+    "kde",
     "desktop",
+    ".desktop",
     "menuitem"
   ],
   "author": {
     "name": "Nathanael Anderson",
-    "email": "nathan@master.technology",
+    "email": "nathan@master-technology.com",
     "url": "https://master.technology"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/master-technology/desktop-menuitem.git"
+  },
+  "homepage": "https://github.com/master-technology/desktop-menuitem",
+  "readmeFilename": "README.md",
+  "funding": [
+    {
+      "type" : "individual",
+      "url" : "https://paypal.me/mastertechnology"
+    },
+    {
+      "type" : "patreon",
+      "url" : "https://www.patreon.com/NathanaelA"
+    }
+  ],
+  "publishConfig": { "access": "public" }
 }

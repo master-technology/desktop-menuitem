@@ -1,8 +1,8 @@
-# gnome-desktop-menuitem
-Create/Edit Gnome Desktop files from the CLI
+# desktop-menuitem
+Create/Edit Gnome/KDE Desktop files from the CLI
 
 ## .desktop file creator/editor
-Are you tired of manually creating .desktop files?
+Are you tired of manually creating .desktop files for your desktop?
 
 ### Installation
 `npm i -g @master.technology/desktopmenuitem`
@@ -31,6 +31,9 @@ However, you are free to pass in whole slew of options:
 --json <key>               Set key/values from JSON
 ```
 
+
+### Notes
+- [.desktop spec](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
 
 
 
