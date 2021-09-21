@@ -1,6 +1,6 @@
 {
   "name": "@master.technology/desktopmenuitem",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "menuitem.js",
   "bin": {
     "desktopmenuitem": "menuitem.js"

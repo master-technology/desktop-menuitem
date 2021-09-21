@@ -118,6 +118,7 @@ if (options.exec == null || options.exec.length === 0) {
 const info = loadFile(desktopFile);
 if (options.edit && !info._created) {
     spawnEditor(info._pathToDesktopFile);
+    spawnUpdateDB(info._pathToDesktopFile.replace(path.basename(info._pathToDesktopFile), ''));
     process.exit(0);
 }
 
@@ -138,6 +139,7 @@ if (configureDesktopEntry(info)) {
     } else {
         console.log("Saved:", fileName);
     }
+    spawnUpdateDB(fileName.replace(path.basename(fileName), ''));
 } else {
     console.log("No Changes");
 }
@@ -145,6 +147,24 @@ if (configureDesktopEntry(info)) {
 // -------------------------------------------------------------------------------------------------
 // Support Functions
 // -------------------------------------------------------------------------------------------------
+
+/**
+ * Spawns the Update desktop database for Mime-types*
+ * @param path
+ */
+function spawnUpdateDB(path) {
+    console.log(path);
+    const updater = ['/usr/bin/update-desktop-database'];
+    for (let i=0;i<updater.length;i++) {
+        if (fs.existsSync(updater[i])) {
+            child.spawnSync(updater[i], ["-q", path], {
+                stdio: 'inherit'
+            });
+            return;
+        }
+    }
+}
+
 
 /**
  * Attempts to figure out the editor, defaults to ubuntu's "editor" command if env vars aren't set
