@@ -1,0 +1,4 @@
+0.0.1   - First version (unreleased)
+0.0.2   - First Released version
+0.0.3   - Added call desktop-update-database after modification to make sure mime cache is updated.
+0.0.4   - Added --changelog, filter to --list, automatically now save changed .desktop in the .local folder.

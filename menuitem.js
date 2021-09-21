@@ -29,6 +29,7 @@ const pathsToCheck = [process.env.HOME+'/.local/share/applications/', '/usr/loca
 addPathsToCheck(process.env['XDG_DATA_DIRS']?.split(":") || []);
 addPathsToCheck(process.env['XDG_DATA_HOME']?.split(':') || []);
 
+const isRoot = process.getuid() === 0 || process.getgid() === 0;
 
 // noinspection SpellCheckingInspection
 console.log("\r\ndesktopmenuitem".blue,version.blue, "\r\n---------------------");
@@ -40,6 +41,8 @@ program.description('An application for creating or editing .desktop files');
 program.option("--view", "View .desktop file");
 program.option("--edit", "Call your editor with the .desktop file");
 program.option("--list", "List all .desktop files" );
+program.option("--changelog", "Display the changelog");
+program.option("--overwrite", "Over write the original file location, if root.")
 program.option("-d, --desktop <file>", "Desktop file to use");
 program.option("-k, --keywords <keywords>", "Set keywords");
 program.option("-m, --mime <type>", "Set mime type");
@@ -56,10 +59,30 @@ const options = program.opts();
 
 // List Directories
 if (options.list) {
-    pathsToCheck.forEach((val) => {
-        listDirectory(val);
-        console.log("");
-    });
+    if (program.args.length) {
+        pathsToCheck.forEach((val) => {
+            if (val.indexOf(program.args[0]) >= 0) {
+                listDirectory(val);
+                console.log("");
+            }
+        });
+    } else {
+        pathsToCheck.forEach((val) => {
+            listDirectory(val);
+            console.log("");
+        });
+    }
+    process.exit(0);
+}
+
+// Show the Changelog
+if (options.changelog) {
+    let startPath = path.normalize(process.argv[1].replace(path.basename(process.argv[1]),'') +  "../lib/node_modules/@master.technology/desktopmenuitem/changelog");
+    if (fs.existsSync(startPath)) {
+        console.log(fs.readFileSync(startPath).toString());
+    } else {
+        console.log("Missing changelog".red);
+    }
     process.exit(0);
 }
 
@@ -100,7 +123,7 @@ if (program.args.length && program.args[0].endsWith(".desktop")) {
 // Figure out the Application Name to show as the Menu
 if (options.name == null || options.name.length === 0) {
     if (program.args.length) {
-        options.dynamicName = cleanName(path.basename(program.args[0], ".desktop"));
+        options.dynamicName = properCase(cleanName(path.basename(program.args[0], ".desktop")));
     } else if (options.desktop != null && options.desktop.length) {
         options.dynamicName = path.basename(options.desktop, ".desktop");
     }
@@ -116,30 +139,30 @@ if (options.exec == null || options.exec.length === 0) {
 }
 
 const info = loadFile(desktopFile);
-if (options.edit && !info._created) {
-    spawnEditor(info._pathToDesktopFile);
-    spawnUpdateDB(info._pathToDesktopFile.replace(path.basename(info._pathToDesktopFile), ''));
+if (options.edit && !info.__internal.created) {
+    spawnEditor(info.__internal.pathWithDesktopFile);
+    spawnUpdateDB(info.__internal.pathToDesktopFile);
     process.exit(0);
 }
 
 // If they just want to view the file...
 if (options.view) {
+    delete info.__internal;
     console.log(info);
     process.exit(0);
 }
 
-if (configureDesktopEntry(info)) {
-//    console.log(info);
-    const fileName = info['_pathToDesktopFile'];
-    delete info['_pathToDesktopFile'];
-    delete info['_created'];
+if (configureDesktopEntry(info) || options.edit) {
+    const fileName = info.__internal.pathWithDesktopFile;
+    const pathToDesktopFile = info.__internal.pathToDesktopFile;
+    delete info.__internal;
     fs.writeFileSync(fileName, ini.stringify(info));
     if (options.edit) {
         spawnEditor(fileName);
     } else {
         console.log("Saved:", fileName);
     }
-    spawnUpdateDB(fileName.replace(path.basename(fileName), ''));
+    spawnUpdateDB(pathToDesktopFile);
 } else {
     console.log("No Changes");
 }
@@ -153,7 +176,6 @@ if (configureDesktopEntry(info)) {
  * @param path
  */
 function spawnUpdateDB(path) {
-    console.log(path);
     const updater = ['/usr/bin/update-desktop-database'];
     for (let i=0;i<updater.length;i++) {
         if (fs.existsSync(updater[i])) {
@@ -259,7 +281,6 @@ function cleanName(name) {
    // Remove known app extensions
    let newName = name.replace(/\.appimage/gi,"");
 
-
    let offset=0;
    do {
        offset = findFirstOffset(newName, offset);
@@ -284,8 +305,7 @@ function cleanName(name) {
        }
    } while (offset !== -1);
 
-   // Upper case first letter
-   return newName.substr(0,1).toUpperCase()+newName.substr(1);
+   return newName;
 }
 
 /**
@@ -336,18 +356,20 @@ function listDirectory(path) {
 /**
  * This finds and loads a .desktop file, or creates a new .desktop file
  * @param fileName
- * @returns {{"Desktop Entry": {Exec: string, Type: string, Keywords: string, Categories: string, Icon: string, Terminal: boolean, MimeType: string, Name: string}, _created: boolean, _pathToDesktopFile: string}|*}
+ * @returns {object}
  */
+
 function loadFile(fileName) {
     //console.log("Searching for:", fileName.blue);
     for (let i=0;i<pathsToCheck.length;i++) {
+        //console.log("Looking at", pathsToCheck[i] + fileName)
         if (fs.existsSync(pathsToCheck[i]+fileName)) {
-                console.log("Loading:", (pathsToCheck[i]+ fileName).blue);
+                console.log("Loading:", (pathsToCheck[i] + fileName).blue);
                 return parseFile(pathsToCheck[i] + fileName);
         }
     }
 
-    console.log("Creating:", (pathsToCheck[0]+fileName).blue);
+    console.log("Creating:", (pathsToCheck[0]+properCase(fileName)).blue);
     return {
         "Desktop Entry":
             {
@@ -360,8 +382,12 @@ function loadFile(fileName) {
                 Icon: '',
                 Exec: ''
             },
-        _pathToDesktopFile: pathsToCheck[0] + fileName,
-        _created: true
+        __internal: {
+            pathToDesktopFile: pathsToCheck[0],
+            desktopFile: fileName,
+            pathWithDesktopFile: pathsToCheck[0] + properCase(fileName),
+            created: true
+        }
     };
 }
 
@@ -371,8 +397,21 @@ function loadFile(fileName) {
  * @returns {object}
  */
 function parseFile(file) {
+    let created = false;
     let data = ini.parse(fs.readFileSync(file, 'utf-8'));
-    data._pathToDesktopFile = file;
+    if (file.indexOf(pathsToCheck[0]) !== 0) {
+        if (!options.overwrite || !isRoot) {
+            file = pathsToCheck[0] + path.basename(file);
+            console.log("Saving as:", file.blue);
+            created = true;
+        }
+    }
+    data.__internal = {
+        pathWithDesktopFile: file,
+        desktopFile: path.basename(file),
+        pathToDesktopFile: file.replace(path.basename(file), ''),
+        created: created
+    };
     return data;
 }
 
@@ -401,4 +440,14 @@ function pathNormalize(inPath) {
     } else {
         return path.normalize(process.cwd() + "/" + tempFile);
     }
+}
+
+/**
+ * Proper-cases a word
+ * @param str
+ * @returns {string}
+ */
+function properCase(str)
+{
+    return str.toLowerCase().replace(/^(.)|\s(.)/g, function($1) { return $1.toUpperCase(); });
 }

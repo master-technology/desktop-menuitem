@@ -1,0 +1,8 @@
+.gitignore
+.npmignore
+.github/
+node_modules/
+package-lock.json
+*.tgz
+*.tar
+*.zip
