@@ -8,10 +8,13 @@ Are you tired of manually creating .desktop files for your desktop?
 `npm i -g @master.technology/desktopmenuitem`
 
 ### Usage
-I tend to go to the directory I've downloaded the new "application" and then just type:
+
+This supports any exectuable file, not just AppImage.  
+
+I tend to move the application form my downloaded folder to where I want it to live and then just type:
 `desktopmenuitem ./appname-1.0.0.AppImage` and be done with it.
 
-This will automatically, detect the name as `Appname` (automatically removing the version and .AppImage) and create a new `appname.desktop` file in your user's application folder.  
+This will automatically, detect the name as `Appname` (automatically removing the version and .AppImage) and create a new `appname.desktop` file in your user's application folder.   
 
 However, you are free to pass in whole slew of options:
 
@@ -44,6 +47,6 @@ However, you are free to pass in whole slew of options:
 
 
 ### Known issues
-- Does not preserve any comments in an existing file
+- Does not preserve any comments in an existing desktop file.
   - The underlying ini load/save module doesn't support this yet.  I would be willing to switch for another no-dependency ini module.  (PR would be welcome)
   
