@@ -52,11 +52,17 @@ program.option("-i, --icon <name>", "Icon name");
 program.option("-h, --hide", "Hide application from menu", false);
 program.option("-t, --terminal", "App requires terminal", false);
 program.option("--json <key>", "Set key/values from JSON");
-program.option("--find <name>", "find .desktop file that matches name")
+program.option("--find <name>", "find .desktop file that matches name");
+program.option("--path", "Display all paths that will be searched for .desktop file");
 
 program.parse(process.argv);
 
 const options = program.opts();
+
+if (options.path) {
+   console.log("Paths:", pathsToCheck);
+   process.exit(0);
+}
 
 
 if (options.find) {
