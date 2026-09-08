@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/home/nathanaela/.nvm/versions/node/v20.11.0/bin/node
 
 /*****************************************************************************************
- * (c) 2021, Master Technology
+ * (c) 2021-2026, Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
@@ -40,7 +40,7 @@ program.showHelpAfterError('Use --help for additional information');
 program.description('An application for creating or editing .desktop files');
 program.option("--view", "View .desktop file");
 program.option("--edit", "Call your editor with the .desktop file");
-program.option("--list", "List all .desktop files" );
+program.option("--list", "List all .desktop files, can provide optional partial path to filter" );
 program.option("--changelog", "Display the changelog");
 program.option("--overwrite", "Over write the original file location, if root.")
 program.option("-d, --desktop <file>", "Desktop file to use");
@@ -52,13 +52,25 @@ program.option("-i, --icon <name>", "Icon name");
 program.option("-h, --hide", "Hide application from menu", false);
 program.option("-t, --terminal", "App requires terminal", false);
 program.option("--json <key>", "Set key/values from JSON");
+program.option("--find <name>", "find .desktop file that matches name")
 
 program.parse(process.argv);
 
 const options = program.opts();
 
+
+if (options.find) {
+   console.log("Finding:", options.find);
+   pathsToCheck.forEach((val) => {
+            listDirectory(val, options.find);
+            console.log("");
+   });
+   process.exit(0);
+}
+
 // List Directories
 if (options.list) {
+    console.log("Searching:", program.args.join(' '));
     if (program.args.length) {
         pathsToCheck.forEach((val) => {
             if (val.indexOf(program.args[0]) >= 0) {
@@ -74,6 +86,8 @@ if (options.list) {
     }
     process.exit(0);
 }
+
+
 
 // Show the Changelog
 if (options.changelog) {
@@ -338,20 +352,22 @@ function findFirstOffset(name, start) {
  * Lists the .desktop files in a directory
  * @param path
  */
-function listDirectory(path) {
+function listDirectory(path, search=null) {
     if (!fs.existsSync(path)) return;
     const data = fs.readdirSync(path);
     let hasPrinted=false;
+    let searching = search != null ? search.toUpperCase() : search;
     data.forEach((val) => {
-        if (val.endsWith(".desktop")) {
+        if (val.endsWith(".desktop") && (search === null || val.toUpperCase().indexOf(searching) >= 0)) {
             if (!hasPrinted) {
                 hasPrinted=true;
-                console.log(path.blue);
+                console.log(path. blue);
             }
             console.log("  ", val.replace(".desktop", "").green);
         }
     });
 }
+
 
 /**
  * This finds and loads a .desktop file, or creates a new .desktop file
@@ -421,7 +437,12 @@ function parseFile(file) {
  */
 function addPathsToCheck(paths) {
     for (let i=0;i<paths.length;i++) {
-        let newPath = paths[i] + '/applications/';
+	let newPath;
+        if (paths[i].endsWith("/")) {
+          newPath = paths[i] + 'applications/';
+        } else {
+          newPath = paths[i] + '/applications/';
+        }
         if (pathsToCheck.indexOf(newPath) === -1) {
             pathsToCheck.push(newPath);
         }
